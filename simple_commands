@@ -1,0 +1,59 @@
+import telebot
+
+# Replace this with a securely stored token
+TOKEN = ""
+bot = telebot.TeleBot(TOKEN)
+
+# Replace with actual chat IDs
+GROUP_CHAT_ID =   # Ensure this is correct
+USER_CHAT_ID =   # Must be an integer
+
+
+# Set the bot menu button
+bot.set_my_commands([
+    telebot.types.BotCommand("menu", "Open Menu"),
+    telebot.types.BotCommand("help", "Get Help"),
+    telebot.types.BotCommand("start", "First name and Second name"),
+])
+
+@bot.message_handler(commands=['menu'])
+def show_menu(message):
+    bot.reply_to(message, "📜 Here is your menu!")
+
+@bot.message_handler(commands=['help'])
+def show_help(message):
+    bot.reply_to(message, "ℹ️ How can I assist you?")
+
+user_data = {}  # Dictionary to store user inputs
+
+@bot.message_handler(commands=['start'])
+def start_conversation(message):
+    """Start the conversation by asking for the first name."""
+    chat_id = message.chat.id
+    user_data[chat_id] = {}  # Initialize user data
+    bot.send_message(chat_id, "👋 Hello! What is your first name?")
+    bot.register_next_step_handler(message, get_first_name)  # Move to next step
+
+def get_first_name(message):
+    """Store first name and ask for surname."""
+    chat_id = message.chat.id
+    user_data[chat_id]['first_name'] = message.text  # Save first name
+    bot.send_message(chat_id, "Great! Now, what is your surname?")
+    bot.register_next_step_handler(message, get_surname)  # Move to next step
+
+def get_surname(message):
+    """Store surname and display the full name."""
+    chat_id = message.chat.id
+    user_data[chat_id]['surname'] = message.text  # Save surname
+
+    # Respond with full name
+    first_name = user_data[chat_id]['first_name']
+    surname = user_data[chat_id]['surname']
+    bot.send_message(chat_id, f"✅ Your full name is: {first_name} {surname}")
+
+    # Clean up stored data (optional)
+    del user_data[chat_id]
+
+print("Running...")
+
+bot.infinity_polling()
